@@ -1,0 +1,534 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Évaluations par Module — Brevet Croix-Rouge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700;9..144,900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --red:#C81E2C; --red-dark:#8C1319; --red-deep:#5C0D11;
+    --ink:#241F1E; --paper:#FBF9F6; --line:#E4DDD6;
+    --good:#2F7A4F; --good-bg:#EAF4EE; --bad:#B23A2E; --bad-bg:#FBEBE8;
+    --amber:#B8860B; --amber-bg:#FBF3E0;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;font-family:'Inter',system-ui,sans-serif;background:var(--paper);color:var(--ink);-webkit-user-select:none;user-select:none;-webkit-font-smoothing:antialiased;}
+  textarea{-webkit-user-select:text;user-select:text;}
+  .wrap{max-width:640px;margin:0 auto;padding:18px 16px 100px;}
+  .top{display:flex;align-items:center;gap:12px;margin-bottom:18px;}
+  .emblem{width:34px;height:34px;flex:none;position:relative;border-radius:50%;border:2.5px solid var(--red);background:#fff;}
+  .emblem::before,.emblem::after{content:"";position:absolute;background:var(--red);}
+  .emblem::before{left:13.5px;top:7px;width:7px;height:20px;}
+  .emblem::after{left:7px;top:13.5px;width:20px;height:7px;}
+  .brand{font-family:'Fraunces',serif;font-weight:700;font-size:13px;color:var(--red-dark);text-transform:uppercase;}
+  .brand span{display:block;font-family:'Inter',sans-serif;font-weight:500;font-size:10.5px;letter-spacing:.05em;color:#8a7f78;text-transform:none;margin-top:1px;}
+  h1{font-family:'Fraunces',serif;font-weight:900;font-size:clamp(22px,6vw,28px);line-height:1.1;margin:0 0 6px;}
+  .sub{color:#6b615b;font-size:14px;line-height:1.5;margin:0 0 20px;}
+
+  .screen{display:none;}
+  .screen.active{display:block;}
+
+  /* Lock screen */
+  #screen-lock{display:flex;flex-direction:column;justify-content:center;min-height:80vh;}
+  .lock-card{background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:28px 24px;text-align:center;}
+  .lock-icon{font-size:36px;margin-bottom:12px;}
+  .lock-input{width:100%;border:1.5px solid var(--line);border-radius:10px;padding:13px 14px;font-size:16px;font-family:inherit;text-align:center;letter-spacing:.05em;margin-top:16px;}
+  .lock-input:focus{outline:none;border-color:var(--red);}
+  .lock-btn{width:100%;background:var(--red-dark);color:#fff;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:700;font-family:inherit;cursor:pointer;margin-top:12px;}
+  .lock-btn:active{background:var(--red-deep);}
+  .lock-error{color:var(--bad);font-size:13px;margin-top:10px;min-height:18px;}
+
+  /* Module picker */
+  .module-grid{display:flex;flex-direction:column;gap:14px;margin-top:10px;}
+  .module-card{text-align:left;background:#fff;border:1.5px solid var(--line);border-radius:16px;padding:18px 20px;cursor:pointer;display:flex;align-items:center;gap:16px;font-family:inherit;}
+  .module-card:active{transform:scale(.98);}
+  .module-num{font-family:'Fraunces',serif;font-weight:900;font-size:30px;color:var(--red);flex:none;width:46px;text-align:center;}
+  .module-text b{display:block;font-size:15.5px;margin-bottom:3px;color:var(--ink);}
+  .module-text span{font-size:12.5px;color:#8a7f78;}
+  .module-pill{margin-top:6px;display:inline-block;font-size:10.5px;font-weight:700;color:var(--red-dark);background:#F7E4E4;padding:3px 9px;border-radius:20px;}
+
+  .meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+  .pill{font-size:11px;font-weight:700;color:var(--red-dark);background:#F7E4E4;padding:4px 10px;border-radius:20px;}
+  .back-btn{background:none;border:none;color:#8a7f78;font-size:13px;font-weight:600;margin-bottom:14px;cursor:pointer;padding:0;}
+
+  .section-title{font-family:'Fraunces',serif;font-weight:700;font-size:17px;color:var(--red-dark);margin:26px 0 4px;padding-bottom:6px;border-bottom:2px solid var(--red);}
+  .section-sub{font-size:12px;color:#8a7f78;margin-bottom:12px;}
+
+  .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:15px;margin-bottom:12px;}
+  .q-num{font-size:10.5px;font-weight:700;color:var(--red);text-transform:uppercase;letter-spacing:.04em;margin-bottom:5px;}
+  .q-text{font-family:'Fraunces',serif;font-weight:600;font-size:15.5px;line-height:1.32;margin:0 0 10px;}
+  .pts{font-weight:500;color:#8a7f78;font-size:12px;}
+
+  .options{display:flex;flex-direction:column;gap:7px;}
+  .opt{text-align:left;border:1.5px solid var(--line);background:#fff;border-radius:10px;padding:10px 12px;font-size:14px;font-family:inherit;color:var(--ink);cursor:pointer;display:flex;align-items:center;gap:9px;}
+  .opt .letter{flex:none;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:10.5px;font-weight:700;color:#8a7f78;}
+  .opt.correct{background:var(--good-bg);border-color:var(--good);color:#1d4d33;}
+  .opt.correct .letter{background:var(--good);border-color:var(--good);color:#fff;}
+  .opt.incorrect{background:var(--bad-bg);border-color:var(--bad);color:#7a251c;}
+  .opt.incorrect .letter{background:var(--bad);border-color:var(--bad);color:#fff;}
+  .opt.disabled{pointer-events:none;}
+  .opt.dim{opacity:.5;}
+  .feedback{margin-top:9px;padding:9px 11px;border-radius:9px;font-size:13px;line-height:1.45;display:none;}
+  .feedback.show{display:block;}
+  .feedback.good{background:var(--good-bg);color:#1d4d33;}
+  .feedback.bad{background:var(--bad-bg);color:#7a251c;}
+
+  textarea{width:100%;min-height:65px;border:1.5px solid var(--line);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:13.5px;resize:vertical;margin-bottom:9px;}
+  textarea:focus{outline:none;border-color:var(--red);}
+  button.link-btn{background:none;border:none;color:var(--red-dark);font-weight:600;font-size:13px;padding:0;cursor:pointer;text-decoration:underline;}
+  .corrige{display:none;margin-top:9px;padding:11px 13px;background:var(--amber-bg);border-radius:10px;border-left:3px solid var(--amber);}
+  .corrige.show{display:block;}
+  .corrige b{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--amber);margin-bottom:4px;}
+  .corrige p{margin:0;font-size:13px;line-height:1.48;color:var(--ink);}
+
+  .self-grade{display:flex;gap:7px;margin-top:11px;}
+  .sg-btn{flex:1;border:1.5px solid var(--line);background:#fff;border-radius:9px;padding:8px 5px;font-size:11.5px;font-weight:600;font-family:inherit;cursor:pointer;color:#8a7f78;text-align:center;}
+  .sg-btn.active-bad{background:var(--bad-bg);border-color:var(--bad);color:var(--bad);}
+  .sg-btn.active-mid{background:var(--amber-bg);border-color:var(--amber);color:var(--amber);}
+  .sg-btn.active-good{background:var(--good-bg);border-color:var(--good);color:var(--good);}
+
+  .scorebar{position:fixed;bottom:0;left:0;right:0;background:var(--red-dark);color:#fff;padding:12px 18px;display:flex;justify-content:space-between;align-items:center;box-shadow:0 -4px 14px rgba(0,0,0,.15);}
+  .scorebar .lbl{font-size:11.5px;opacity:.85;}
+  .scorebar .val{font-family:'Fraunces',serif;font-weight:900;font-size:19px;}
+  .finish-btn{background:#fff;color:var(--red-dark);border:none;border-radius:10px;padding:9px 15px;font-weight:700;font-size:12.5px;font-family:inherit;cursor:pointer;}
+
+  .result{display:none;background:#fff;border:1.5px solid var(--line);border-radius:14px;padding:20px;margin-top:18px;text-align:center;}
+  .result.show{display:block;}
+  .result .score{font-family:'Fraunces',serif;font-weight:900;font-size:36px;color:var(--red-dark);}
+  .result p{font-size:13.5px;color:#6b615b;line-height:1.5;}
+  .change-btn{margin-top:14px;background:var(--red-dark);color:#fff;border:none;border-radius:10px;padding:11px 18px;font-weight:700;font-size:13.5px;font-family:inherit;cursor:pointer;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="emblem"></div>
+    <div class="brand">Brevet de Volontaire<span>Évaluations par Module</span></div>
+  </div>
+
+  <!-- LOCK SCREEN -->
+  <div class="screen active" id="screen-lock">
+    <div class="lock-card">
+      <div class="lock-icon">🔒</div>
+      <h1 style="font-size:22px;">Accès réservé</h1>
+      <p class="sub" style="margin-bottom:0;">Entrez la clé d'accès communiquée par votre formateur.</p>
+      <input type="password" class="lock-input" id="lock-input" placeholder="Clé d'accès" autocomplete="off">
+      <button class="lock-btn" id="lock-btn">Déverrouiller</button>
+      <p class="lock-error" id="lock-error"></p>
+    </div>
+  </div>
+
+  <!-- HOME / MODULE PICKER -->
+  <div class="screen" id="screen-home">
+    <h1>Choisissez votre module.</h1>
+    <p class="sub">Chaque module propose 20 questions à choix multiples et 20 questions ouvertes, tirées du manuel de formation. Auto-correction immédiate pour les QCM, corrigés modèles à comparer pour les questions ouvertes.</p>
+    <div class="module-grid" id="module-grid"></div>
+  </div>
+
+  <!-- EXAM SCREEN -->
+  <div class="screen" id="screen-exam">
+    <button class="back-btn" id="back-btn">← Changer de module</button>
+    <h1 id="exam-title"></h1>
+    <div class="meta">
+      <span class="pill">Barème : 40 pts</span>
+      <span class="pill">20 QCM + 20 QRO</span>
+    </div>
+
+    <div class="section-title">Questions à Choix Multiples</div>
+    <div class="section-sub">20 × 1 pt = 20 pts</div>
+    <div id="qcm-container"></div>
+
+    <div class="section-title">Questions Ouvertes</div>
+    <div class="section-sub">20 × 1 pt = 20 pts — rédigez, puis comparez au corrigé et auto-évaluez-vous</div>
+    <div id="qro-container"></div>
+
+    <div class="result" id="result">
+      <div class="score" id="final-score">0 / 40</div>
+      <p id="result-msg"></p>
+      <button class="change-btn" id="change-btn">Choisir un autre module</button>
+    </div>
+  </div>
+</div>
+
+<div class="scorebar" id="scorebar" style="display:none;">
+  <div><div class="lbl">Score actuel</div><div class="val" id="live-score">0 / 40</div></div>
+  <button class="finish-btn" id="finish-btn">Voir le résultat</button>
+</div>
+
+<script>
+// ===================== VERROUILLAGE =====================
+const ACCESS_CODE = "SECOURS2026";
+const screenLock = document.getElementById('screen-lock');
+const lockInput = document.getElementById('lock-input');
+const lockBtn = document.getElementById('lock-btn');
+const lockError = document.getElementById('lock-error');
+
+function tryUnlock(){
+  if(lockInput.value.trim().toUpperCase() === ACCESS_CODE.toUpperCase()){
+    screenLock.classList.remove('active');
+    document.getElementById('screen-home').classList.add('active');
+    sessionStorage.setItem('brevet_unlocked', '1');
+  } else {
+    lockError.textContent = "Clé incorrecte. Réessayez.";
+    lockInput.value = "";
+    lockInput.focus();
+  }
+}
+lockBtn.addEventListener('click', tryUnlock);
+lockInput.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') tryUnlock(); });
+if(sessionStorage.getItem('brevet_unlocked') === '1'){
+  screenLock.classList.remove('active');
+  document.getElementById('screen-home').classList.add('active');
+}
+
+document.addEventListener('contextmenu', (e)=> e.preventDefault());
+document.addEventListener('keydown', (e)=>{
+  const k = e.key.toLowerCase();
+  if((e.ctrlKey || e.metaKey) && (k === 's' || k === 'p')) e.preventDefault();
+  if((e.ctrlKey || e.metaKey) && e.shiftKey && ['i','j','c'].includes(k)) e.preventDefault();
+});
+
+// ===================== BANQUE DE QUESTIONS PAR MODULE =====================
+const MODULES = {
+  1: {
+    title: "Module I — Mouvement International",
+    desc: "Histoire, principes fondamentaux, emblèmes, Croix-Rouge Camerounaise",
+    qcm: [
+      {q:"En quelle année a eu lieu la bataille de Solférino ?", opts:["1849","1859","1863","1864"], correct:1, exp:"1859, dans le nord de l'Italie."},
+      {q:"À quelle date le Comité des Cinq se réunit-il pour la première fois ?", opts:["9 février 1863","17 février 1863","26 octobre 1863","22 août 1864"], correct:1, exp:"Le 17 février 1863 : naissance du futur CICR."},
+      {q:"Qui préside le Comité des Cinq lors de sa première année ?", opts:["Gustave Moynier","Henry Dunant","Guillaume-Henri Dufour","Louis Appia"], correct:2, exp:"Le Général Dufour préside le Comité avant Moynier."},
+      {q:"Quel membre du Comité des Cinq était chirurgien suisse ?", opts:["Gustave Moynier","Louis Appia","Guillaume-Henri Dufour","Théodore Maunoir"], correct:1, exp:"Louis Appia (1818-1898), chirurgien militaire."},
+      {q:"Quel emblème a été officiellement reconnu en 1929 ?", opts:["Croix-Rouge","Croissant-Rouge","Cristal-Rouge","Étoile Rouge"], correct:1, exp:"Le Croissant-Rouge, utilisé dès 1876, reconnu en 1929."},
+      {q:"Combien de résolutions ont été adoptées à la Conférence de Genève de 1863 ?", opts:["5","8","10","12"], correct:2, exp:"Dix résolutions et trois vœux complémentaires."},
+      {q:"Quelle résolution de 1863 instaure le brassard blanc à croix rouge ?", opts:["Article 1","Article 5","Article 8","Article 10"], correct:2, exp:"L'Article 8 consacre le brassard blanc à croix rouge."},
+      {q:"Qui est le premier président du CICR (1864-1910) ?", opts:["Henry Dunant","Gustave Moynier","Guillaume-Henri Dufour","Louis Appia"], correct:1, exp:"Gustave Moynier dirige le CICR de 1864 à 1910."},
+      {q:"En quelle année la première Convention de Genève a-t-elle été adoptée ?", opts:["1863","1864","1907","1949"], correct:1, exp:"22 août 1864."},
+      {q:"En quelle année le nom \"CICR\" est-il officiellement adopté ?", opts:["1863","1876","1919","1949"], correct:1, exp:"1876."},
+      {q:"En quelle année la FICR a-t-elle été fondée ?", opts:["1876","1919","1949","1965"], correct:1, exp:"1919, à Genève."},
+      {q:"Combien de Conventions de Genève ont été adoptées en 1949 ?", opts:["2","3","4","5"], correct:2, exp:"Quatre Conventions."},
+      {q:"Le Protocole III (2005) reconnaît quel emblème ?", opts:["Croix-Rouge","Croissant-Rouge","Cristal-Rouge","Étoile Rouge"], correct:2, exp:"Le Cristal-Rouge."},
+      {q:"En quelle année les 7 Principes Fondamentaux ont-ils été adoptés ?", opts:["1949","1965","1977","1919"], correct:1, exp:"À Vienne, en 1965."},
+      {q:"Quel principe signifie \"servir sans discrimination\" ?", opts:["Neutralité","Indépendance","Impartialité","Unité"], correct:2, exp:"L'Impartialité."},
+      {q:"Quel principe impose une seule Société par pays ?", opts:["Unité","Universalité","Indépendance","Neutralité"], correct:0, exp:"Le principe d'Unité."},
+      {q:"Quelle résolution de l'ONU définit la culture de la paix (1999) ?", opts:["Charte de l'ONU","Résolution 53/243","Déclaration de Genève","Pacte de 1919"], correct:1, exp:"Résolution 53/243."},
+      {q:"En quelle année la Croix-Rouge Camerounaise a-t-elle été créée ?", opts:["1960","1963","1919","1997"], correct:0, exp:"Le 30 avril 1960."},
+      {q:"Qui est le premier président de la CRC ?", opts:["W. A. Eteki Mboumoua","Cécile Akame Mfoumou","Simon Pierre Tchoungui","Gustave Moynier"], correct:2, exp:"Dr Simon Pierre Tchoungui."},
+      {q:"Quelle est la durée du mandat de l'actuelle présidente de la CRC (réélue en 2025) ?", opts:["3 ans","4 ans","6 ans","10 ans"], correct:2, exp:"Six ans (2025-2031)."},
+    ],
+    qro: [
+      {q:"Citer les 7 Principes Fondamentaux.", corrige:"Humanité, Impartialité, Neutralité, Indépendance, Volontariat, Unité, Universalité."},
+      {q:"Expliquer le principe de Neutralité.", corrige:"Le Mouvement ne prend pas parti dans les hostilités ni les controverses politiques, raciales, religieuses ou idéologiques."},
+      {q:"Expliquer le principe d'Impartialité.", corrige:"Le Mouvement secourt sans discrimination, en s'attachant en priorité aux détresses les plus urgentes."},
+      {q:"Expliquer le principe d'Indépendance.", corrige:"Le Mouvement conserve une autonomie lui permettant d'agir selon ses propres principes, même auxiliaire des pouvoirs publics."},
+      {q:"Expliquer le principe d'Unité.", corrige:"Il ne peut exister qu'une seule Société de la Croix-Rouge ou du Croissant-Rouge dans un même pays, ouverte à tous."},
+      {q:"Expliquer le principe d'Universalité.", corrige:"Toutes les Sociétés ont des droits égaux et le devoir de s'entraider ; le Mouvement est mondial."},
+      {q:"Expliquer le principe de Volontariat.", corrige:"Le Mouvement est un secours volontaire, désintéressé, sans aucun mobile de gain."},
+      {q:"Expliquer le principe d'Humanité.", corrige:"Né du souci de porter secours sans discrimination, le Mouvement prévient et allège les souffrances, protège la vie et la santé, et fait respecter la personne humaine."},
+      {q:"Citer les membres du Comité des Cinq.", corrige:"Henry Dunant, Guillaume-Henri Dufour, Gustave Moynier, Louis Appia, Théodore Maunoir."},
+      {q:"Donner la date et le lieu de la première réunion du Comité des Cinq.", corrige:"Le 17 février 1863, à Genève."},
+      {q:"Expliquer la différence entre la fonction indicative et la fonction protectrice de l'emblème.", corrige:"Indicative : petit format, signale un lien avec le Mouvement en tout temps. Protectrice : grand format, signale en conflit armé une protection par les Conventions de Genève."},
+      {q:"Citer les trois emblèmes reconnus du Mouvement.", corrige:"La Croix-Rouge (1863), le Croissant-Rouge (1929), le Cristal-Rouge (2005)."},
+      {q:"Citer trois usages abusifs de l'emblème interdits par le DIH.", corrige:"L'imitation, l'usurpation, la perfidie."},
+      {q:"Donner une mission du CICR et une de la FICR.", corrige:"CICR : protège les victimes des conflits armés, garant du DIH. FICR : coordonne les secours lors de catastrophes naturelles."},
+      {q:"Expliquer le rôle des Sociétés Nationales.", corrige:"Auxiliaires des pouvoirs publics dans le domaine humanitaire : secours, catastrophes, santé, assistance sociale."},
+      {q:"Citer les trois composantes du Mouvement.", corrige:"Le CICR, la FICR, les Sociétés Nationales."},
+      {q:"Donner la date de création de la CRC et le nom de son premier président.", corrige:"30 avril 1960, Dr Simon Pierre Tchoungui."},
+      {q:"Citer trois devoirs du Bénévole Secouriste.", corrige:"Agir selon les Principes Fondamentaux, respecter l'usage de l'emblème, servir sans discrimination."},
+      {q:"Expliquer le rôle du Bénévole Secouriste dans le maintien de la paix.", corrige:"Organiser des activités rassembleuses, assurer la médiation, être neutre et impartial, sensibiliser aux bienfaits de la paix."},
+      {q:"Citer deux facteurs qui favorisent la paix.", corrige:"Deux parmi : le dialogue, l'éducation, la tolérance, la justice sociale, le respect des droits humains."},
+    ]
+  },
+  2: {
+    title: "Module II — Les Premiers Secours",
+    desc: "Généralités, hémorragies, RCP, peau, appareil osseux",
+    qcm: [
+      {q:"Que signifie CVC dans l'examen sommaire d'un accidenté ?", opts:["Conscience, Ventilation, Circulation","Corps, Voies, Chocs","Calme, Vigilance, Contrôle","Constat, Vérification, Compression"], correct:0, exp:"Les trois fonctions vitales évaluées en premier."},
+      {q:"Après combien de cycles de RCP faut-il vérifier le pouls ?", opts:["1","3","5","10"], correct:1, exp:"Après trois cycles de 30:2."},
+      {q:"Quel est le ratio standard de la RCP chez l'adulte ?", opts:["15/1","30/2","10/2","20/1"], correct:1, exp:"30 compressions pour 2 insufflations."},
+      {q:"Que signifie LVA ?", opts:["Libération des Voies Aériennes","Liaison des Vaisseaux Artériels","Limitation des Vertiges Aigus","Lésion des Voies Abdominales"], correct:0, exp:"Premier geste face à une détresse respiratoire."},
+      {q:"Dans quelle catégorie classe-t-on une hémorragie interne ?", opts:["Troisième urgence","Deuxième urgence","Première urgence","Extrême urgence"], correct:3, exp:"Extrême urgence."},
+      {q:"Fréquence respiratoire normale d'un adulte au repos ?", opts:["5-10/min","12-20/min","30-60/min","40-60/min"], correct:1, exp:"12 à 20 cycles/min."},
+      {q:"Lequel n'est PAS un point de compression à distance ?", opts:["Le bras","Le creux sus-claviculaire","Le pli de l'aine","Le genou"], correct:3, exp:"Bras, creux sus-claviculaire, pli de l'aine sont les 3 points reconnus."},
+      {q:"Couleur du sang lors d'une hémorragie artérielle ?", opts:["Rouge sombre, en nappe","Rouge vif, en jet","Rose clair","Noir"], correct:1, exp:"Rouge vif, coule en jet."},
+      {q:"Couleur du sang lors d'une hémorragie veineuse ?", opts:["Rouge vif, en jet","Rouge sombre, en nappe","Rose clair","Noir"], correct:1, exp:"Rouge sombre, coule lentement."},
+      {q:"Premier geste face à une victime qui s'étouffe et ne parle plus ?", opts:["Lui donner de l'eau","Claques entre les omoplates","La coucher","Attendre"], correct:1, exp:"Cinq claques, puis Heimlich si besoin."},
+      {q:"Combien de claques dans le dos avant la manœuvre de Heimlich ?", opts:["2","5","10","aucune"], correct:1, exp:"Cinq claques vigoureuses."},
+      {q:"En cas de piqûre d'abeille, quel geste en premier ?", opts:["Garrot","Enlever le dard","Faire vomir","Percer la zone"], correct:1, exp:"Enlever le dard limite l'injection de venin."},
+      {q:"Qu'est-ce qu'une fracture ?", opts:["Un étirement de ligament","Un os qui sort de sa cavité","La cassure de l'os","Une déchirure de la peau"], correct:2, exp:"La fracture est la cassure de l'os."},
+      {q:"Que se passe-t-il lors d'une luxation ?", opts:["L'os se casse","L'os sort de sa cavité","Un ligament s'étire","La peau se déchire"], correct:1, exp:"L'os sort de sa cavité articulaire."},
+      {q:"Face à une fracture de la colonne vertébrale, que ne faut-il pas faire ?", opts:["Couvrir la victime","Alerter les secours","Mobiliser inutilement","Surveiller"], correct:2, exp:"Risque de lésion irréversible de la moelle épinière."},
+      {q:"Premier geste face à une brûlure simple ?", opts:["Percer la cloque","Refroidir à l'eau tempérée","Appliquer du beurre","Frotter la zone"], correct:1, exp:"Refroidir 10 à 15 minutes."},
+      {q:"Quel type de lien appliquer sur une morsure de serpent ?", opts:["Un garrot serré","Un lien large, non serré","Aucun lien","Un bandage très serré"], correct:1, exp:"Un lien large et souple, jamais un garrot."},
+      {q:"Combien y a-t-il de catégories d'urgence dans le tri des victimes ?", opts:["2","3","4","5"], correct:2, exp:"Extrême, première, deuxième et troisième urgence."},
+      {q:"Quelle est la première étape de la démarche PAS ?", opts:["Protéger","Alerter","Secourir","Surveiller"], correct:0, exp:"Protection, Alerte, Secours."},
+      {q:"Quel numéro compose-t-on pour les sapeurs-pompiers au Cameroun ?", opts:["112","113","117","118"], correct:3, exp:"118, sapeurs-pompiers (112 = numéro d'urgence général)."},
+    ],
+    qro: [
+      {q:"Définir les premiers secours.", corrige:"Ensemble des gestes techniques, urgents et efficaces, administrés à une victime avant l'arrivée des secours spécialisés."},
+      {q:"Citer les 4 objectifs des premiers secours.", corrige:"Sauver les vies, atténuer les souffrances, favoriser la guérison, éviter l'aggravation."},
+      {q:"Que signifie \"PAS\" ?", corrige:"Protection, Alerte, Secours."},
+      {q:"Citer les 6 éléments obligatoires du message d'alerte.", corrige:"Se présenter, localiser l'incident, décrire sa nature, donner le nombre de victimes et leur état, indiquer les gestes déjà faits, préciser les besoins."},
+      {q:"Définir \"point de compression\".", corrige:"Endroit précis situé entre le cœur et la blessure, où l'on plaque une artère contre l'os pour limiter une hémorragie."},
+      {q:"Citer les 3 points de compression à distance.", corrige:"Le bras, le creux sus-claviculaire (\"la salière\"), le pli de l'aine."},
+      {q:"Citer les 6 signes d'une hémorragie interne.", corrige:"Soif intense, pouls filant, lèvres/bouche sèches, pâleur, angoisse/vertiges/fatigue, froideur des extrémités."},
+      {q:"Différence entre hémorragie externe et extériorisée ?", corrige:"Externe : plaie visible sur la peau. Extériorisée : sang d'une hémorragie interne qui ressort par un orifice naturel."},
+      {q:"Citer les étapes de la manœuvre de Heimlich.", corrige:"Se placer derrière la victime, poing au-dessus du nombril, l'autre main par-dessus, compressions vers soi et vers le haut."},
+      {q:"Que faire si le pouls est absent après 3 cycles de RCP ?", corrige:"Reprendre immédiatement le cycle 30:2 et répéter la vérification toutes les trois séries."},
+      {q:"Citer deux causes de l'arrêt cardio-pulmonaire.", corrige:"Deux parmi : choc brutal, fortes émotions, maladie cardiaque, inhalation de gaz toxiques, électrisation, perte de sang abondante."},
+      {q:"Citer les 3 rôles de la peau.", corrige:"Réguler la température, éliminer les déchets, protéger contre les agressions extérieures."},
+      {q:"Citer les 5 principes d'une bonne immobilisation.", corrige:"Remuer le moins possible, respecter la déformation, utiliser des moyens solides, immobiliser les articulations voisines, immobiliser de part et d'autre."},
+      {q:"Citer les 3 risques d'une mauvaise immobilisation.", corrige:"La paralysie, l'hémorragie, l'infection."},
+      {q:"Donner 4 signes d'un malaise.", corrige:"Quatre parmi : pâleur, sueurs, vertiges, douleur, difficulté à respirer, pouls irrégulier."},
+      {q:"Définir la fracture, l'entorse et la luxation.", corrige:"Fracture : cassure de l'os. Entorse : étirement excessif d'un ligament. Luxation : l'os sort de sa cavité articulaire."},
+      {q:"Conduite à tenir face à une brûlure simple.", corrige:"Refroidir à l'eau tempérée 10-15 min, ne pas percer les cloques, couvrir d'un pansement stérile."},
+      {q:"Conduite à tenir face à une morsure de serpent.", corrige:"Allonger et calmer la victime, immobiliser le membre, laver à l'eau et au savon, lien large entre cœur et morsure, identifier le serpent, évacuer."},
+      {q:"Citer les 4 catégories d'urgence dans le tri des victimes.", corrige:"Extrême urgence, première urgence, deuxième urgence, troisième urgence."},
+      {q:"Expliquer l'examen sommaire d'un accidenté (CVC).", corrige:"Évaluation des 3 fonctions vitales : Conscience, Ventilation, Circulation, avant de rechercher d'autres atteintes."},
+    ]
+  },
+  3: {
+    title: "Module III — Santé Communautaire",
+    desc: "WASH, paludisme, diarrhée, PEV, malnutrition, épidémies, IST/VIH, EASH...",
+    qcm: [
+      {q:"WASH signifie Eau, Assainissement et... ?", opts:["Hygiène","Habitat","Hospitalisation","Hérédité"], correct:0, exp:"Water, Sanitation, Hygiene."},
+      {q:"Combien d'étapes compte le lavage des mains selon l'OMS ?", opts:["3","4","6","8"], correct:2, exp:"Six étapes."},
+      {q:"Le paludisme est causé par... ?", opts:["Un virus","Une bactérie","Un parasite (Plasmodium)","Un champignon"], correct:2, exp:"Le Plasmodium, transmis par l'anophèle."},
+      {q:"Principal moyen de prévention du paludisme ?", opts:["Antibiotiques","Moustiquaire imprégnée (MILDA)","Vaccin BCG","Chloration de l'eau"], correct:1, exp:"La MILDA."},
+      {q:"Un signe de paludisme grave ?", opts:["Éternuements","Convulsions","Toux sèche","Démangeaisons"], correct:1, exp:"Convulsions, coma, forte fièvre persistante."},
+      {q:"On parle de diarrhée à partir de... ?", opts:["1 selle liquide/jour","3 selles liquides/jour","5 selles liquides/jour","10 selles liquides/jour"], correct:1, exp:"Au moins 3 fois par jour."},
+      {q:"Comment prépare-t-on la SRO ?", opts:["1 sachet dans 1L d'eau propre","1 sachet dans 100ml d'eau","2 sachets dans 1L d'eau","1 sachet dans du lait"], correct:0, exp:"Un sachet dans un litre d'eau propre bouillie puis refroidie."},
+      {q:"Un signe de déshydratation sévère ?", opts:["Yeux creux et pli cutané persistant","Appétit augmenté","Peau très rouge","Toux grasse"], correct:0, exp:"Yeux creux, pli cutané persistant, soif intense."},
+      {q:"Combien de maladies évitables couvre le PEV au Cameroun ?", opts:["5","8","14","20"], correct:2, exp:"14 maladies évitables par la vaccination."},
+      {q:"À quel âge donne-t-on la 1ère dose contre la rougeole ?", opts:["Naissance","6 semaines","9 mois","2 ans"], correct:2, exp:"9 mois pour la 1ère dose (RR1)."},
+      {q:"La malnutrition aiguë se définit par... ?", opts:["Un excès de poids","Un déficit de poids par rapport à la taille","Un retard de croissance","Une carence en fer uniquement"], correct:1, exp:"Déficit de poids par rapport à la taille."},
+      {q:"Seuil du PB (périmètre brachial) signalant une malnutrition sévère ?", opts:["< 115 mm","115-124 mm","≥ 125 mm","150 mm"], correct:0, exp:"Rouge : moins de 115 mm."},
+      {q:"Durée recommandée de l'allaitement maternel exclusif ?", opts:["1 mois","3 mois","6 mois","12 mois"], correct:2, exp:"Six premiers mois de vie."},
+      {q:"La surveillance communautaire sert à... ?", opts:["Vacciner les enfants","Repérer et signaler les signes précoces d'épidémie","Distribuer des médicaments","Nourrir les malades"], correct:1, exp:"Repérage et signalement rapide aux autorités sanitaires."},
+      {q:"Un facteur qui favorise une épidémie ?", opts:["Une forte densité de population","Un climat froid","Un faible contact humain","Une bonne hygiène générale"], correct:0, exp:"La densité de population favorise la propagation."},
+      {q:"Le VIH se transmet principalement par voie... ?", opts:["Aérienne","Sexuelle, sanguine, mère-enfant","Alimentaire uniquement","Cutanée par contact"], correct:1, exp:"Sexuelle, sanguine, et de la mère à l'enfant."},
+      {q:"La toxicomanie se caractérise par... ?", opts:["Une allergie alimentaire","Une consommation abusive créant une dépendance","Un simple rhume","Une carence vitaminique"], correct:1, exp:"Dépendance physique et/ou psychologique à une substance."},
+      {q:"La SRA concerne... ?", opts:["La santé des personnes âgées","La santé de la reproduction des adolescents","La sécurité routière","La santé animale"], correct:1, exp:"Santé sexuelle et reproductive des adolescents."},
+      {q:"La \"règle du maillot de bain\" enseigne aux enfants que... ?", opts:["Il faut toujours porter un maillot","Les parties couvertes ne doivent être ni vues ni touchées par autrui","Il faut se baigner tous les jours","Le maillot protège du soleil"], correct:1, exp:"Principe clé de la prévention des abus sexuels envers les enfants."},
+      {q:"Face à la confidence d'un enfant victime d'abus, il faut... ?", opts:["Promettre le secret","Le croire, le rassurer et signaler aux autorités","L'ignorer","L'interroger de façon insistante"], correct:1, exp:"Croire l'enfant, le rassurer, ne pas l'interroger, signaler."},
+    ],
+    qro: [
+      {q:"Définir l'éducation à la santé.", corrige:"Processus par lequel on transmet des connaissances à une personne ou un groupe afin d'améliorer son état de santé."},
+      {q:"Citer les 3 piliers du WASH.", corrige:"Eau (accès à l'eau potable), Hygiène (lavage des mains), Assainissement (latrines, déchets)."},
+      {q:"Citer les 6 étapes du lavage des mains.", corrige:"Mouiller, savonner, frotter les paumes, frotter le dos des mains et entre les doigts, frotter le bout des doigts, rincer et sécher."},
+      {q:"Définir le paludisme et son mode de transmission.", corrige:"Maladie parasitaire due au Plasmodium, transmise par la piqûre d'un moustique anophèle femelle infecté."},
+      {q:"Citer les signes de gravité du paludisme.", corrige:"Convulsions, fièvre élevée persistante, vomissements répétés, grande faiblesse, teint pâle ou jaunâtre."},
+      {q:"Définir la diarrhée.", corrige:"Émission de selles anormalement molles ou liquides, au moins trois fois par jour."},
+      {q:"Décrire la préparation de la SRO.", corrige:"Verser un sachet de SRO dans un litre d'eau propre, bouillie puis refroidie, bien mélanger, donner par petites gorgées."},
+      {q:"Citer les signes de déshydratation.", corrige:"Yeux creux, pli cutané persistant, soif intense, enfant somnolent ou apathique."},
+      {q:"Définir le PEV et son objectif.", corrige:"Programme Élargi de Vaccination : vise à protéger chaque enfant contre les principales maladies évitables par la vaccination."},
+      {q:"Citer 3 maladies évitables par la vaccination.", corrige:"Trois parmi : tuberculose, poliomyélite, rougeole, tétanos, coqueluche, diphtérie, hépatite B, fièvre jaune, méningite."},
+      {q:"Définir la malnutrition aiguë.", corrige:"Déficit de poids par rapport à la taille, résultant d'un manque d'apport alimentaire récent."},
+      {q:"Citer les seuils du périmètre brachial (PB).", corrige:"Vert ≥ 125 mm (normal) ; jaune 115-124 mm (modérée) ; rouge < 115 mm (sévère, urgence)."},
+      {q:"Définir l'allaitement maternel exclusif.", corrige:"Alimentation du nourrisson uniquement au lait maternel, sans autre aliment ni liquide, durant les 6 premiers mois."},
+      {q:"Définir la surveillance communautaire.", corrige:"Capacité des volontaires à repérer et signaler rapidement aux autorités sanitaires les signes précoces d'une épidémie."},
+      {q:"Citer 4 causes favorisant une épidémie.", corrige:"Contact rapproché avec une personne malade, eau/aliments contaminés, absence d'hygiène, forte densité de population."},
+      {q:"Citer les modes de transmission du VIH.", corrige:"Voie sexuelle, voie sanguine, transmission de la mère à l'enfant."},
+      {q:"Définir la toxicomanie.", corrige:"Consommation abusive de substances licites ou illicites entraînant une dépendance physique et/ou psychologique."},
+      {q:"Citer 2 conséquences des grossesses précoces.", corrige:"Deux parmi : risques pour la santé de la mère et de l'enfant, déscolarisation, mortalité maternelle accrue."},
+      {q:"Expliquer la règle du maillot de bain.", corrige:"Les parties du corps couvertes par le maillot de bain ne doivent être ni regardées ni touchées par autrui, sauf un parent/médecin pour raison de santé."},
+      {q:"Citer le rôle du bénévole face à une épidémie suspectée.", corrige:"Repérer les signes d'alerte, notifier rapidement les autorités sanitaires, sensibiliser la population."},
+    ]
+  },
+  4: {
+    title: "Module IV — Gestion des Catastrophes",
+    desc: "Généralités, prévention, réponse, réhabilitation, RLF",
+    qcm: [
+      {q:"La gestion des catastrophes vise à... ?", opts:["Provoquer des catastrophes","Éviter, minimiser les effets et rétablir la vie des sinistrés","Ignorer les risques","Uniquement soigner les malades"], correct:1, exp:"Ensemble de mesures avant/pendant/après une catastrophe."},
+      {q:"La vulnérabilité désigne... ?", opts:["La force d'une communauté","Le degré d'exposition aux dégâts et pertes","Le nombre de secouristes","La distance à l'hôpital"], correct:1, exp:"Degré d'exposition face à une situation donnée."},
+      {q:"La capacité désigne... ?", opts:["Les ressources qu'on peut mobiliser face à un danger","Le nombre de victimes","La taille d'un village","La météo locale"], correct:0, exp:"Qualités et ressources pour anticiper, faire face et se relever."},
+      {q:"Différence entre risque et danger ?", opts:["Aucune différence","Le risque est une probabilité, le danger une certitude imminente","Le danger est moins grave","Le risque ne concerne que les inondations"], correct:1, exp:"Risque = probabilité ; danger = certitude dans un temps/lieu donné."},
+      {q:"Une catastrophe naturelle est provoquée par... ?", opts:["L'homme","Les forces de la nature","Les animaux uniquement","La technologie"], correct:1, exp:"Inondations, séismes, glissements de terrain, tsunamis."},
+      {q:"Un exemple de catastrophe d'origine humaine sociale ?", opts:["Un séisme","Une émeute","Un tsunami","Une inondation"], correct:1, exp:"Les émeutes, guerres, génocides sont d'origine sociale."},
+      {q:"Un exemple de catastrophe d'origine humaine technologique ?", opts:["Une famine","Une explosion d'usine","Une sécheresse","Un glissement de terrain"], correct:1, exp:"Crash d'avion, déraillement, explosion d'usine."},
+      {q:"Une zone à risque typique ?", opts:["Un plateau élevé","Un marécage","Un centre-ville plat","Une zone désertique"], correct:1, exp:"Marécages, flancs de montagnes, proximité d'usines/voies ferrées."},
+      {q:"La prévention/préparation vise à... ?", opts:["Réparer après coup","Éviter la catastrophe et réduire son impact","Ignorer les alertes","Attendre les secours"], correct:1, exp:"Ensemble de mesures prises AVANT la catastrophe."},
+      {q:"Un plan de contingence est établi... ?", opts:["Après la catastrophe","Avant la survenue d'une catastrophe","Pendant l'évacuation uniquement","Jamais"], correct:1, exp:"Avant, pour diminuer les souffrances et organiser la réponse."},
+      {q:"Que signifie ORSEC ?", opts:["Organisation des Secours","Organisme de Régulation Sanitaire","Ordre de Réquisition Civile","Office Régional de Secours"], correct:0, exp:"Organisation des Secours."},
+      {q:"Au Cameroun, quel ministère supervise la protection civile ?", opts:["MINSANTE","MINAT","MINEDUB","MINJEC"], correct:1, exp:"Le MINAT, via la Direction de la Protection Civile (DPC)."},
+      {q:"La réponse à une catastrophe vise à... ?", opts:["Prévenir uniquement","Faire face à la catastrophe et sauver un maximum de vies","Reconstruire les routes","Punir les responsables"], correct:1, exp:"Ensemble des activités pour faire face et sauver des vies."},
+      {q:"Dans la chaîne des secours, que vient-il après le ramassage ?", opts:["L'évacuation finale","Le PMA (Poste Médical Avancé)","Le deuil","Rien"], correct:1, exp:"Sinistré → Ramassage → PMA/Tri → Évaluation."},
+      {q:"Que signifie PMA ?", opts:["Poste Médical Avancé","Plan Militaire d'Action","Point de Mobilisation Associatif","Programme Médical Annuel"], correct:0, exp:"Poste Médical Avancé."},
+      {q:"La réhabilitation post-crise vise à... ?", opts:["Alerter la population","Relever les victimes de leur vulnérabilité","Créer la catastrophe","Empêcher les secours"], correct:1, exp:"Réparer les dommages et restaurer les moyens de vie."},
+      {q:"Le RLF signifie... ?", opts:["Réseau Local de Formation","Rétablissement des Liens Familiaux","Régime de Loi Fédérale","Recensement des Logements Familiaux"], correct:1, exp:"Rétablissement des Liens Familiaux."},
+      {q:"Quel outil du RLF permet d'échanger de courtes nouvelles familiales ?", opts:["Le Message Croix-Rouge (MCR)","Le PPI","L'ORSEC","Le PMA"], correct:0, exp:"Le Message Croix-Rouge (MCR)."},
+      {q:"Un Enfant Non Accompagné (ENA) est... ?", opts:["Un enfant avec ses parents","Un enfant séparé et sans adulte responsable","Un enfant scolarisé","Un enfant handicapé"], correct:1, exp:"Séparé de sa famille et sans adulte responsable de lui."},
+      {q:"Un Enfant Séparé (ES) est... ?", opts:["Un enfant séparé mais avec un autre adulte responsable","Un enfant seul sans personne","Un orphelin définitif","Un enfant handicapé"], correct:0, exp:"Séparé de sa famille mais sous la responsabilité d'un autre adulte."},
+    ],
+    qro: [
+      {q:"Définir la gestion des catastrophes.", corrige:"Ensemble des mesures, dispositions et activités prises pour éviter une catastrophe, en minimiser les effets et rétablir la vie des sinistrés."},
+      {q:"Définir la vulnérabilité.", corrige:"Degré auquel les personnes sont exposées aux dégâts, pertes, souffrances ou à la mort, face à une situation donnée."},
+      {q:"Définir la capacité.", corrige:"Qualités et ressources qu'un individu ou une communauté peut utiliser pour anticiper un danger, y faire face et s'en remettre."},
+      {q:"Différencier risque et danger.", corrige:"Risque : probabilité qu'un élément perturbateur survienne. Danger : certitude qu'il survienne, dans un temps et un lieu donnés."},
+      {q:"Définir la catastrophe.", corrige:"Perturbation extrême du fonctionnement d'une communauté, entraînant d'importantes pertes que la société ne peut gérer seule."},
+      {q:"Citer deux exemples de catastrophes naturelles.", corrige:"Deux parmi : inondations, séismes, glissements de terrain, tsunamis."},
+      {q:"Citer deux exemples de catastrophes d'origine humaine.", corrige:"Deux parmi : guerre, émeute, génocide (origine sociale) ; crash d'avion, explosion d'usine (origine technologique)."},
+      {q:"Citer trois zones à risque typiques.", corrige:"Les marécages, les flancs de montagnes, la proximité des usines et des chemins de fer."},
+      {q:"Citer 3 activités de prévention menées par la Croix-Rouge.", corrige:"Trois parmi : identifier les zones à risque, sensibiliser les populations, former aux premiers secours, mettre en place un système d'alerte précoce."},
+      {q:"Définir le plan de contingence.", corrige:"Ensemble des mesures prises avant la survenue d'une catastrophe, afin de diminuer les souffrances humaines et mieux organiser la réponse."},
+      {q:"Que signifie ORSEC et qui le supervise au Cameroun ?", corrige:"Organisation des Secours ; supervisé par le MINAT à travers la Direction de la Protection Civile (DPC)."},
+      {q:"Citer les 4 plans complémentaires à l'ORSEC.", corrige:"Le Plan Particulier d'Intervention (PPI), le Plan Rouge (PR), le Plan de Secours Spécialisé (PSS), le Plan d'Organisation Interne (POI)."},
+      {q:"Définir la réponse à une catastrophe.", corrige:"Ensemble des activités permettant de faire face à une catastrophe et de sauver le maximum de vies humaines possible."},
+      {q:"Citer les 6 activités de la réponse.", corrige:"L'alerte, le regroupement, l'évaluation et mobilisation des ressources, l'attribution des responsabilités, la chaîne de secours, le suivi."},
+      {q:"Décrire la chaîne médicale des secours.", corrige:"Sinistré → Ramassage → PMA (Poste Médical Avancé) / Tri → Évaluation → orientation (UAO, UR, ou décès)."},
+      {q:"Définir la réhabilitation post-crise.", corrige:"Ensemble des activités permettant de relever les victimes de leur vulnérabilité et de réparer les dommages causés par la catastrophe."},
+      {q:"Citer deux activités de réhabilitation.", corrige:"Deux parmi : activités génératrices de revenus, réinsertion socio-économique, soutien psychosocial, RLF."},
+      {q:"Définir le RLF.", corrige:"Ensemble des activités visant à atténuer la souffrance de la séparation, en rétablissant et maintenant les contacts entre personnes séparées."},
+      {q:"Citer 3 outils du RLF.", corrige:"Le Message Croix-Rouge (MCR), la Demande de Recherche (DR), les Cartes de Bonne Nouvelle (CBN)."},
+      {q:"Différencier ENA et ES.", corrige:"ENA (Enfant Non Accompagné) : séparé de sa famille, sans adulte responsable. ES (Enfant Séparé) : séparé de sa famille, mais sous la responsabilité d'un autre adulte."},
+    ]
+  }
+};
+
+// ===================== LOGIQUE =====================
+const screenHome = document.getElementById('screen-home');
+const screenExam = document.getElementById('screen-exam');
+const scorebar = document.getElementById('scorebar');
+let qcmScore = 0, qroScore = 0;
+
+function liveTotal(){ return qcmScore + qroScore; }
+function updateLive(){
+  document.getElementById('live-score').textContent = liveTotal().toFixed(1).replace(/\.0$/,'') + " / 40";
+}
+
+// Construire les cartes de sélection de module
+const grid = document.getElementById('module-grid');
+Object.keys(MODULES).forEach(key => {
+  const m = MODULES[key];
+  const btn = document.createElement('button');
+  btn.className = 'module-card';
+  btn.innerHTML = `<div class="module-num">${key}</div>
+    <div class="module-text"><b>${m.title.replace(/^Module [IV]+ — /,'')}</b><span>${m.desc}</span>
+    <div class="module-pill">20 QCM + 20 QRO — 40 pts</div></div>`;
+  btn.addEventListener('click', () => loadModule(key));
+  grid.appendChild(btn);
+});
+
+function shuffle(arr){
+  const a = arr.slice();
+  for(let i=a.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [a[i],a[j]] = [a[j],a[i]];
+  }
+  return a;
+}
+
+function makeQCMCard(item, qi, onCorrect){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<div class="q-num">Question ${qi+1} <span class="pts">(1 pt)</span></div>
+    <p class="q-text">${item.q}</p><div class="options"></div><div class="feedback"></div>`;
+  const optsWrap = card.querySelector('.options');
+  const letters = ["a","b","c","d"];
+  const indices = shuffle(item.opts.map((_, i) => i));
+  const newCorrectPos = indices.indexOf(item.correct);
+  indices.forEach((origIdx, i)=>{
+    const b = document.createElement('button');
+    b.className = 'opt';
+    b.innerHTML = `<span class="letter">${letters[i]}</span><span>${item.opts[origIdx]}</span>`;
+    b.addEventListener('click', ()=>{
+      const opts = card.querySelectorAll('.opt');
+      opts.forEach(o=>o.classList.add('disabled'));
+      const isCorrect = i === newCorrectPos;
+      opts[i].classList.add(isCorrect?'correct':'incorrect');
+      if(!isCorrect) opts[newCorrectPos].classList.add('correct');
+      opts.forEach((o,idx2)=>{ if(idx2!==i && idx2!==newCorrectPos) o.classList.add('dim'); });
+      const fb = card.querySelector('.feedback');
+      fb.className = 'feedback show ' + (isCorrect?'good':'bad');
+      fb.textContent = item.exp;
+      if(isCorrect){ onCorrect(1); updateLive(); }
+    });
+    optsWrap.appendChild(b);
+  });
+  return card;
+}
+
+function makeQROCard(item, qi, onGrade){
+  const card = document.createElement('div');
+  card.className = 'card';
+  card.innerHTML = `<div class="q-num">Question ${qi+1} <span class="pts">(1 pt)</span></div>
+    <p class="q-text">${item.q}</p>
+    <textarea placeholder="Rédigez votre réponse ici..."></textarea>
+    <button class="link-btn">Voir le corrigé modèle</button>
+    <div class="corrige"><b>Corrigé modèle</b><p>${item.corrige}</p></div>
+    <div class="self-grade" style="display:none;">
+      <button class="sg-btn" data-frac="0">Faux (0)</button>
+      <button class="sg-btn" data-frac="0.5">Partiel</button>
+      <button class="sg-btn" data-frac="1">Complet</button>
+    </div>`;
+  const linkBtn = card.querySelector('.link-btn');
+  const corrige = card.querySelector('.corrige');
+  const selfGrade = card.querySelector('.self-grade');
+  linkBtn.addEventListener('click', ()=>{
+    corrige.classList.add('show');
+    selfGrade.style.display = 'flex';
+    linkBtn.style.display = 'none';
+  });
+  let added = 0;
+  selfGrade.querySelectorAll('.sg-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      selfGrade.querySelectorAll('.sg-btn').forEach(b=>b.classList.remove('active-bad','active-mid','active-good'));
+      const frac = parseFloat(btn.dataset.frac);
+      if(frac===0) btn.classList.add('active-bad');
+      else if(frac===1) btn.classList.add('active-good');
+      else btn.classList.add('active-mid');
+      onGrade(-added);
+      added = frac;
+      onGrade(added);
+      updateLive();
+    });
+  });
+  return card;
+}
+
+function loadModule(key){
+  const m = MODULES[key];
+  qcmScore = 0; qroScore = 0;
+  document.getElementById('exam-title').textContent = m.title;
+
+  const qcmC = document.getElementById('qcm-container'); qcmC.innerHTML = '';
+  shuffle(m.qcm).forEach((item, qi) => qcmC.appendChild(makeQCMCard(item, qi, (v)=>{ qcmScore += v; })));
+
+  const qroC = document.getElementById('qro-container'); qroC.innerHTML = '';
+  shuffle(m.qro).forEach((item, qi) => qroC.appendChild(makeQROCard(item, qi, (v)=>{ qroScore += v; })));
+
+  document.getElementById('result').classList.remove('show');
+  updateLive();
+  screenHome.classList.remove('active');
+  screenExam.classList.add('active');
+  scorebar.style.display = 'flex';
+  window.scrollTo({top:0, behavior:'smooth'});
+}
+
+document.getElementById('back-btn').addEventListener('click', () => {
+  screenExam.classList.remove('active');
+  screenHome.classList.add('active');
+  scorebar.style.display = 'none';
+});
+document.getElementById('change-btn').addEventListener('click', () => {
+  screenExam.classList.remove('active');
+  screenHome.classList.add('active');
+  scorebar.style.display = 'none';
+});
+
+document.getElementById('finish-btn').addEventListener('click', ()=>{
+  const total = liveTotal();
+  const pct = Math.round((total/40)*100);
+  document.getElementById('final-score').textContent = total.toFixed(1).replace(/\.0$/,'') + " / 40";
+  let msg;
+  if(pct>=85) msg = "Excellent ! Ce module est maîtrisé.";
+  else if(pct>=60) msg = "Bonne base — quelques révisions cibleront les points faibles.";
+  else msg = "Relisez ce module dans le manuel, puis retentez l'évaluation.";
+  document.getElementById('result-msg').textContent = "Score : " + total.toFixed(1).replace(/\.0$/,'') + "/40 (" + pct + "%) — " + msg;
+  document.getElementById('result').classList.add('show');
+  document.getElementById('result').scrollIntoView({behavior:'smooth', block:'center'});
+});
+</script>
+</body>
+</html>
